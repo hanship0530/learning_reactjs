@@ -28,9 +28,9 @@ import Person from './Person/Person'
 function App() {
   const [ personsState, setPersonsState ] = useState({
     persons: [
-      { name: 'Max', age: 28 },
-      { name: 'Manu', age: 29 },
-      { name: 'Stephanie', age: 26 }
+      {id:'id1',  name: 'Max', age: 28 },
+      {id:'id2',  name: 'Manu', age: 29 },
+      {id:'id3',  name: 'Stephanie', age: 26 }
     ]
   });
   
@@ -50,14 +50,18 @@ function App() {
     })
   };
 
-  const nameChangeHandler = (event) => {
-    setPersonsState({
-      persons: [
-        { name: personsState.persons[0].name, age: 27 },
-        { name: event.target.value, age: 29 },
-        { name: personsState.persons[2].name, age: 26 }
-      ]
-    })
+  const nameChangeHandler = (event, id) => {
+    const personIndex = personsState.persons.findIndex(p => {
+      return p.id === id;
+    });
+    // 기존 오브젝트를 수정하는 것 보다 복사해서 수정하는 것을 자바스크립트에서는 권장함
+    // without mutating orignal object
+    const person = { ...personsState.persons[personIndex] };
+    person.name = event.target.value;
+    const persons = [...personsState.persons];
+    persons[personIndex] = person;
+
+    setPersonsState({ persons: persons });
   };
   
   // Inline style
@@ -73,25 +77,45 @@ function App() {
     const doesShow = showPersons;
     setShowPersons(!doesShow);
   };
+  
+  const deletePersonHandler = (personIndex) => {
+    // const persons = personsState.persons;
+    const persons = [...personsState.persons];
+    persons.splice(personIndex, 1);
+    setPersonsState({persons: persons})
+  };
+  let persons = null;
 
+  if (showPersons) {
+    persons = (
+      <div>
+        {personsState.persons.map(
+          (person, index) => {
+            return <Person
+              click={() => deletePersonHandler(index)}
+              name={person.name}
+              age={person.age}
+              key={person.id}
+              changed={(event) => nameChangeHandler(event, person.id)}/>
+          }
+        )}
+          {/* <Person name={personsState.persons[0].name} age={personsState.persons[0].age} />
+          <Person name={personsState.persons[1].name}
+            age={personsState.persons[1].age}
+            click={switchNameHandler.bind(this, 'Max!')}
+            changed={nameChangeHandler}> My Hobbies: Racing</Person>
+          <Person name={personsState.persons[2].name} age={personsState.persons[2].age} /> */}
+        </div> 
+    );
+  }
   return (
     <div className="App">
       <h1>Hi, I'm React App</h1>
       <p>This is really working</p>
       <button
         style={style}
-        onClick={togglePersonHandler}>Switch Name</button>
-      {
-        showPersons ?
-        <div>
-          <Person name={personsState.persons[0].name} age={personsState.persons[0].age} />
-          <Person name={personsState.persons[1].name}
-            age={personsState.persons[1].age}
-            click={switchNameHandler.bind(this, 'Max!')}
-            changed={nameChangeHandler}> My Hobbies: Racing</Person>
-          <Person name={personsState.persons[2].name} age={personsState.persons[2].age} />
-        </div> : null
-      }  
+        onClick={togglePersonHandler}>Toggle Persons</button>
+      {persons}
     </div>
   );
   // return React.createElement('div', {className: 'App'}, React.createElement('h1',null,'Does this work now?'));
